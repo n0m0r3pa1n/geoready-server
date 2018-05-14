@@ -1,9 +1,12 @@
 import numpy as np
 
 from flask import Flask
+from flask import request
+from flask import jsonify
+
 app = Flask(__name__)
 
-def GeoReadyFun():
+def GeoReadyFun(Temp, E, Tar):
     def heating(t, on_off):
         heating_power = 5
         start_period = 0.5
@@ -17,9 +20,9 @@ def GeoReadyFun():
 
     samples_per_hour = 30
     h_c = -0.077 / samples_per_hour
-    T_0 = 18
-    T_E = 15
-    target = 20
+    T_0 = float(Temp)
+    T_E = float(E)
+    target = float(Tar)
     time_to_simulate = 4
 
     time = np.linspace(0, time_to_simulate, time_to_simulate * samples_per_hour)
@@ -31,10 +34,12 @@ def GeoReadyFun():
         else:
             break
     time_needed = point * 60
-
-    return str(time_needed)
+    return jsonify(minutes=int(time_needed))
 
 @app.route("/")
 def hello():
-    return GeoReadyFun()
+    T = request.args.get('internal_temp')
+    E = request.args.get('external_temp')
+    Tar = request.args.get('target')
+    return GeoReadyFun(T, E, Tar)
 
